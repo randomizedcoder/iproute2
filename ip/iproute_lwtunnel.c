@@ -1008,7 +1008,8 @@ static int parse_encap_seg6(struct rtattr *rta, size_t len, int *argcp,
 				invarg("\"segs\" provided before \"mode\"\n",
 				       *argv);
 
-			strlcpy(segbuf, *argv, sizeof(segbuf));
+			if (strlcpy(segbuf, *argv, sizeof(segbuf)) >= sizeof(segbuf))
+				invarg("\"segs\" value is too long\n", *argv);
 		} else if (strcmp(*argv, "hmac") == 0) {
 			NEXT_ARG();
 			if (hmac_ok++)
@@ -1118,7 +1119,8 @@ static int parse_encap_rpl(struct rtattr *rta, size_t len, int *argcp,
 			if (segs_ok++)
 				duparg2("segs", *argv);
 
-			strlcpy(segbuf, *argv, sizeof(segbuf));
+			if (strlcpy(segbuf, *argv, sizeof(segbuf)) >= sizeof(segbuf))
+				invarg("\"segs\" value is too long\n", *argv);
 		} else {
 			break;
 		}
@@ -1557,7 +1559,8 @@ static int parse_encap_seg6local(struct rtattr *rta, size_t len, int *argcp,
 			NEXT_ARG();
 			if (segs_ok++)
 				duparg2("segs", *argv);
-			strlcpy(segbuf, *argv, sizeof(segbuf));
+			if (strlcpy(segbuf, *argv, sizeof(segbuf)) >= sizeof(segbuf))
+				invarg("\"segs\" value is too long\n", *argv);
 			if (!NEXT_ARG_OK())
 				break;
 			NEXT_ARG();
