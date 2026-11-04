@@ -1433,27 +1433,25 @@ static int seg6local_parse_flavors(struct rtattr *rta, size_t len,
 		return ret;
 
 	if (flavors & (1 << SEG6_LOCAL_FLV_OP_NEXT_CSID)) {
-		NEXT_ARG_FWD();
-		if (strcmp(*argv, "lblen") == 0){
+		if (NEXT_ARG_OK() && strcmp(argv[1], "lblen") == 0) {
+			NEXT_ARG();
 			NEXT_ARG();
 			if (lbl_ok++)
 				duparg2("lblen", *argv);
 			if (get_u8(&lbl, *argv, 0))
 				invarg("\"locator-block length\" value is invalid\n", *argv);
 			ret = rta_addattr8(rta, len, SEG6_LOCAL_FLV_LCBLOCK_BITS, lbl);
-			NEXT_ARG_FWD();
 		}
 
-		if (strcmp(*argv, "nflen") == 0){
+		if (NEXT_ARG_OK() && strcmp(argv[1], "nflen") == 0) {
+			NEXT_ARG();
 			NEXT_ARG();
 			if (nfl_ok++)
 				duparg2("nflen", *argv);
 			if (get_u8(&nfl, *argv, 0))
 				invarg("\"locator-node function length\" value is invalid\n", *argv);
 			ret = rta_addattr8(rta, len, SEG6_LOCAL_FLV_LCNODE_FN_BITS, nfl);
-			NEXT_ARG_FWD();
 		}
-		PREV_ARG();
 	}
 
 	rta_nest_end(rta, nest);
