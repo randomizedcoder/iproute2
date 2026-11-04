@@ -1013,7 +1013,8 @@ static int parse_encap_seg6(struct rtattr *rta, size_t len, int *argcp,
 			NEXT_ARG();
 			if (hmac_ok++)
 				duparg2("hmac", *argv);
-			get_u32(&hmac, *argv, 0);
+			if (get_u32(&hmac, *argv, 0))
+				invarg("\"hmac\" value is invalid\n", *argv);
 		} else if (strcmp(*argv, "lookup") == 0) {
 			NEXT_ARG();
 			if (lookup_ok++)
@@ -1564,7 +1565,8 @@ static int parse_encap_seg6local(struct rtattr *rta, size_t len, int *argcp,
 				NEXT_ARG();
 				if (hmac_ok++)
 					duparg2("hmac", *argv);
-				get_u32(&hmac, *argv, 0);
+				if (get_u32(&hmac, *argv, 0))
+					invarg("\"hmac\" value is invalid\n", *argv);
 			} else {
 				continue;
 			}
