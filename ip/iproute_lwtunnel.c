@@ -2274,6 +2274,8 @@ static int parse_encap_xfrm(struct rtattr *rta, size_t len,
 			ret = rta_addattr32(rta, len, LWT_XFRM_LINK, link);
 		} else if (!strcmp(*argv, "help")) {
 			lwt_xfrm_usage();
+		} else {
+			break;
 		}
 		if (ret)
 			break;
