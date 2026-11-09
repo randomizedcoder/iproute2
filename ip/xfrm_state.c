@@ -1189,6 +1189,7 @@ static int xfrm_state_keep(struct nlmsghdr *n, void *arg)
 		return 0;
 
 	new_n = (struct nlmsghdr *)(xb->buf + xb->offset);
+	memset(new_n, 0, NLMSG_LENGTH(sizeof(*xsid)));
 	new_n->nlmsg_len = NLMSG_LENGTH(sizeof(*xsid));
 	new_n->nlmsg_flags = NLM_F_REQUEST;
 	new_n->nlmsg_type = XFRM_MSG_DELSA;
