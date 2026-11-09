@@ -781,7 +781,7 @@ static int xfrm_policy_keep(struct nlmsghdr *n, void *arg)
 
 	if (tb[XFRMA_MARK]) {
 		int r = addattr_l(new_n, xb->size, XFRMA_MARK,
-				(void *)RTA_DATA(tb[XFRMA_MARK]), tb[XFRMA_MARK]->rta_len);
+				(void *)RTA_DATA(tb[XFRMA_MARK]), RTA_PAYLOAD(tb[XFRMA_MARK]));
 		if (r < 0) {
 			fprintf(stderr, "%s: XFRMA_MARK failed\n", __func__);
 			exit(1);
