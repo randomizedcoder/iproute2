@@ -1159,6 +1159,7 @@ static int xfrm_state_keep(struct nlmsghdr *n, void *arg)
 	struct nlmsghdr *new_n;
 	struct xfrm_usersa_id *xsid;
 	struct rtattr *tb[XFRMA_MAX+1];
+	int need;
 
 	if (n->nlmsg_type != XFRM_MSG_NEWSA) {
 		fprintf(stderr, "Not a state: %08x %08x %08x\n",
@@ -1179,10 +1180,13 @@ static int xfrm_state_keep(struct nlmsghdr *n, void *arg)
 	    xsinfo->id.proto == IPPROTO_IPV6)
 		return 0;
 
-	if (xb->offset > xb->size) {
-		fprintf(stderr, "State buffer overflow\n");
-		return -1;
-	}
+	parse_rtattr(tb, XFRMA_MAX, XFRMS_RTA(xsinfo), len);
+
+	need = NLMSG_LENGTH(sizeof(*xsid)) + RTA_SPACE(sizeof(xsid->daddr));
+	if (tb[XFRMA_MARK])
+		need += RTA_ALIGN(tb[XFRMA_MARK]->rta_len);
+	if (xb->offset + need > xb->size)
+		return 0;
 
 	new_n = (struct nlmsghdr *)(xb->buf + xb->offset);
 	new_n->nlmsg_len = NLMSG_LENGTH(sizeof(*xsid));
@@ -1198,8 +1202,6 @@ static int xfrm_state_keep(struct nlmsghdr *n, void *arg)
 
 	addattr_l(new_n, xb->size, XFRMA_SRCADDR, &xsinfo->saddr,
 		  sizeof(xsid->daddr));
-
-	parse_rtattr(tb, XFRMA_MAX, XFRMS_RTA(xsinfo), len);
 
 	if (tb[XFRMA_MARK]) {
 		int r = addattr_l(new_n, xb->size, XFRMA_MARK,

@@ -732,6 +732,7 @@ static int xfrm_policy_keep(struct nlmsghdr *n, void *arg)
 	__u8 ptype = XFRM_POLICY_TYPE_MAIN;
 	struct nlmsghdr *new_n;
 	struct xfrm_userpolicy_id *xpid;
+	int need;
 
 	if (n->nlmsg_type != XFRM_MSG_NEWPOLICY) {
 		fprintf(stderr, "Not a policy: %08x %08x %08x\n",
@@ -765,7 +766,12 @@ static int xfrm_policy_keep(struct nlmsghdr *n, void *arg)
 	if (xpinfo->dir >= XFRM_POLICY_MAX)
 		return 0;
 
-	if (xb->offset + NLMSG_LENGTH(sizeof(*xpid)) > xb->size)
+	need = NLMSG_LENGTH(sizeof(*xpid));
+	if (tb[XFRMA_MARK])
+		need += RTA_ALIGN(tb[XFRMA_MARK]->rta_len);
+	if (tb[XFRMA_IF_ID])
+		need += RTA_SPACE(sizeof(__u32));
+	if (xb->offset + need > xb->size)
 		return 0;
 
 	new_n = (struct nlmsghdr *)(xb->buf + xb->offset);
