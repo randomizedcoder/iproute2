@@ -1008,12 +1008,14 @@ static int parse_encap_seg6(struct rtattr *rta, size_t len, int *argcp,
 				invarg("\"segs\" provided before \"mode\"\n",
 				       *argv);
 
-			strlcpy(segbuf, *argv, sizeof(segbuf));
+			if (strlcpy(segbuf, *argv, sizeof(segbuf)) >= sizeof(segbuf))
+				invarg("\"segs\" value is too long\n", *argv);
 		} else if (strcmp(*argv, "hmac") == 0) {
 			NEXT_ARG();
 			if (hmac_ok++)
 				duparg2("hmac", *argv);
-			get_u32(&hmac, *argv, 0);
+			if (get_u32(&hmac, *argv, 0))
+				invarg("\"hmac\" value is invalid\n", *argv);
 		} else if (strcmp(*argv, "lookup") == 0) {
 			NEXT_ARG();
 			if (lookup_ok++)
@@ -1117,7 +1119,8 @@ static int parse_encap_rpl(struct rtattr *rta, size_t len, int *argcp,
 			if (segs_ok++)
 				duparg2("segs", *argv);
 
-			strlcpy(segbuf, *argv, sizeof(segbuf));
+			if (strlcpy(segbuf, *argv, sizeof(segbuf)) >= sizeof(segbuf))
+				invarg("\"segs\" value is too long\n", *argv);
 		} else {
 			break;
 		}
@@ -1433,27 +1436,25 @@ static int seg6local_parse_flavors(struct rtattr *rta, size_t len,
 		return ret;
 
 	if (flavors & (1 << SEG6_LOCAL_FLV_OP_NEXT_CSID)) {
-		NEXT_ARG_FWD();
-		if (strcmp(*argv, "lblen") == 0){
+		if (NEXT_ARG_OK() && strcmp(argv[1], "lblen") == 0) {
+			NEXT_ARG();
 			NEXT_ARG();
 			if (lbl_ok++)
 				duparg2("lblen", *argv);
 			if (get_u8(&lbl, *argv, 0))
 				invarg("\"locator-block length\" value is invalid\n", *argv);
 			ret = rta_addattr8(rta, len, SEG6_LOCAL_FLV_LCBLOCK_BITS, lbl);
-			NEXT_ARG_FWD();
 		}
 
-		if (strcmp(*argv, "nflen") == 0){
+		if (NEXT_ARG_OK() && strcmp(argv[1], "nflen") == 0) {
+			NEXT_ARG();
 			NEXT_ARG();
 			if (nfl_ok++)
 				duparg2("nflen", *argv);
 			if (get_u8(&nfl, *argv, 0))
 				invarg("\"locator-node function length\" value is invalid\n", *argv);
 			ret = rta_addattr8(rta, len, SEG6_LOCAL_FLV_LCNODE_FN_BITS, nfl);
-			NEXT_ARG_FWD();
 		}
-		PREV_ARG();
 	}
 
 	rta_nest_end(rta, nest);
@@ -1558,7 +1559,8 @@ static int parse_encap_seg6local(struct rtattr *rta, size_t len, int *argcp,
 			NEXT_ARG();
 			if (segs_ok++)
 				duparg2("segs", *argv);
-			strlcpy(segbuf, *argv, sizeof(segbuf));
+			if (strlcpy(segbuf, *argv, sizeof(segbuf)) >= sizeof(segbuf))
+				invarg("\"segs\" value is too long\n", *argv);
 			if (!NEXT_ARG_OK())
 				break;
 			NEXT_ARG();
@@ -1566,7 +1568,8 @@ static int parse_encap_seg6local(struct rtattr *rta, size_t len, int *argcp,
 				NEXT_ARG();
 				if (hmac_ok++)
 					duparg2("hmac", *argv);
-				get_u32(&hmac, *argv, 0);
+				if (get_u32(&hmac, *argv, 0))
+					invarg("\"hmac\" value is invalid\n", *argv);
 			} else {
 				continue;
 			}
@@ -2276,6 +2279,8 @@ static int parse_encap_xfrm(struct rtattr *rta, size_t len,
 			ret = rta_addattr32(rta, len, LWT_XFRM_LINK, link);
 		} else if (!strcmp(*argv, "help")) {
 			lwt_xfrm_usage();
+		} else {
+			break;
 		}
 		if (ret)
 			break;

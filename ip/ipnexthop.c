@@ -1105,13 +1105,14 @@ static int ipnh_modify(int cmd, unsigned int flags, int argc, char **argv)
 			rta->rta_type = NHA_ENCAP;
 			rta->rta_len = RTA_LENGTH(0);
 
-			lwt_parse_encap(rta, sizeof(buf), &argc, &argv,
-					NHA_ENCAP, NHA_ENCAP_TYPE);
+			if (lwt_parse_encap(rta, sizeof(buf), &argc, &argv,
+					    NHA_ENCAP, NHA_ENCAP_TYPE))
+				return -1;
 
-			if (rta->rta_len > RTA_LENGTH(0)) {
-				addraw_l(&req.n, 1024, RTA_DATA(rta),
-					 RTA_PAYLOAD(rta));
-			}
+			if (rta->rta_len > RTA_LENGTH(0) &&
+			    addraw_l(&req.n, 1024, RTA_DATA(rta),
+				     RTA_PAYLOAD(rta)))
+				return -1;
 		} else if (!strcmp(*argv, "blackhole")) {
 			addattr_l(&req.n, sizeof(req), NHA_BLACKHOLE, NULL, 0);
 			if (req.nhm.nh_family == AF_UNSPEC)
